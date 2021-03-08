@@ -1,15 +1,16 @@
 # Unisave Compiler
 
 This repository contains the service that performs backend compilation.
-It is the [Roslyn](https://github.com/dotnet/roslyn) copmiler that comes with
-Mono, packaged as an HTTP service in a Docker container.
+It uses the [Roslyn](https://github.com/dotnet/roslyn) compiler that
+comes with Mono, packaged as an HTTP service in a Docker container.
 
 It tries to provide similar compilation to what [Unity performs](https://docs.unity3d.com/2020.1/Documentation/Manual/CSharpCompiler.html).
 
 
 ## Compilation API
 
-The request to compile a backend that has been uploaded has the following structure:
+The request to compile a backend that has been uploaded to the cloud
+storage has the following structure:
 
 ```json
 {
@@ -31,3 +32,34 @@ The request to compile a backend that has been uploaded has the following struct
 
 The request is authorized using basic HTTP auth where the user is `token`
 and the password is the security token itself.
+
+The compilation results are uploaded into the cloud storage.
+
+The response has the following format:
+
+```json
+{
+    "success": true,
+    "message": "Compilation was successful.",
+    "output": "<what the compiler prints>"
+}
+```
+
+or maybe:
+
+```json
+{
+    "success": false,
+    "message": "Compilation error.",
+    "output": "Compilation failed: 1 error(s)..."
+}
+```
+
+or:
+
+```json
+{
+    "success": false,
+    "message": "The service experienced an internal error."
+}
+```
