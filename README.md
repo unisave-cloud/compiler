@@ -4,10 +4,13 @@ This repository contains the service that performs backend compilation.
 It uses the [Roslyn](https://github.com/dotnet/roslyn) compiler that
 comes with Mono, packaged as an HTTP service in a Docker container.
 
-It tries to provide similar compilation to what [Unity performs](https://docs.unity3d.com/2020.1/Documentation/Manual/CSharpCompiler.html).
+It tries to provide similar compilation to what
+[Unity performs](https://docs.unity3d.com/2020.1/Documentation/Manual/CSharpCompiler.html).
 
 
 ## Compilation API
+
+`POST /compile-backend`
 
 The request to compile a backend that has been uploaded to the cloud
 storage has the following structure:
@@ -30,7 +33,7 @@ storage has the following structure:
 }
 ```
 
-The request is authorized using basic HTTP auth where the user is `token`
+The request is authorized using basic HTTP auth where the user is `api`
 and the password is the security token itself.
 
 The compilation results are uploaded into the cloud storage.
