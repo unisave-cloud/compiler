@@ -19,11 +19,13 @@ namespace UnisaveCompiler.Http
             listener = new HttpListener();
             listener.Prefixes.Add("http://*:" + port + "/");
             
-            // we will accept basic http auth
-            listener.AuthenticationSchemes = AuthenticationSchemes.Basic;
-            //listener.AuthenticationSchemeSelectorDelegate += request => {
-            //return AuthenticationSchemes.Basic;
-            //};
+            // we will accept basic http auth for some routes
+            listener.AuthenticationSchemeSelectorDelegate += request => {
+                var route = router.ResolveRoute(request);
+                return route.SecretToken == null ?
+                    AuthenticationSchemes.None :
+                    AuthenticationSchemes.Basic;
+            };
 
             this.router = router;
         }
@@ -94,7 +96,27 @@ namespace UnisaveCompiler.Http
 
             try
             {
-                await router.HandleRequestAsync(context);
+                Route route = router.ResolveRoute(context.Request);
+
+                // authenticate
+                if (route.SecretToken != null)
+                {
+                    var identity = (HttpListenerBasicIdentity) context.User.Identity;
+                    
+                    if (!route.Authenticate(identity))
+                    {
+                        // authentication failed
+                        new HttpResponse { StatusCode = 401 }
+                            .Send(context.Response);
+                        
+                        return;
+                    }
+                }
+                
+                // invoke
+                HttpResponse response = await route.InvokeAsync(context.Request);
+                
+                response.Send(context.Response);
             }
             catch (Exception e)
             {
@@ -102,6 +124,9 @@ namespace UnisaveCompiler.Http
                     "An exception occured when " +
                     "processing an HTTP request:\n" + e
                 );
+                
+                var exceptionResponse = new ExceptionResponse(e);
+                exceptionResponse.Send(context.Response);
             }
             finally
             {

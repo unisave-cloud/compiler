@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using DotNetEnv;
@@ -17,12 +18,38 @@ namespace UnisaveCompiler
 
         public CompilerServer()
         {
+            // === setup the compiler service ===
+            
+            // TODO ...
+            
+            // === setup HTTP server ===
+            
+            var router = new Router();
+            
             httpServer = new HttpServer(
                 Env.GetInt("LISTENING_PORT"),
-                new Router(
-                    secretToken: Env.GetString("SECRET_TOKEN"),
-                    indexPage: IndexPage,
-                    compileBackend: CompileBackend
+                router
+            );
+
+            var secretToken = Env.GetString("SECRET_TOKEN");
+            
+            // === define HTTP routes ===
+
+            router.AddRoute(
+                new JsonRoute<HealthCheckResponse>(
+                    method: HttpMethod.Get,
+                    url: "/",
+                    handler: IndexPage,
+                    token: null
+                )
+            );
+            
+            router.AddRoute(
+                new JsonRoute<CompilationRequest, CompilationResponse>(
+                    method: HttpMethod.Post,
+                    url: "/compile-backend",
+                    handler: CompileBackend,
+                    token: secretToken
                 )
             );
         }
@@ -75,15 +102,16 @@ namespace UnisaveCompiler
         // Handling HTTP requests //
         ////////////////////////////
 
-        private Task<string> IndexPage(HttpListenerContext context)
+        private Task<HealthCheckResponse> IndexPage(HttpListenerRequest _)
         {
-            string json = "{'healthy':true}".Replace('\'', '"');
-            
-            return Task.FromResult(json);
+            return Task.FromResult(new HealthCheckResponse {
+                Healthy = true
+            });
         }
         
         private async Task<CompilationResponse> CompileBackend(
-            CompilationRequest request
+            CompilationRequest request,
+            HttpListenerRequest _
         )
         {
             // TODO: router needs to handle exceptions and return 500 to client
