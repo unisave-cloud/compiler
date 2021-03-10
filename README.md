@@ -29,7 +29,11 @@ storage has the following structure:
             "hash": "a52da9bfbaa6841965d1dc7e2b4af586"
         }
     ],
-    "framework_version": "0.10.2"
+    "framework_version": "0.10.2",
+    "checked": false,
+    "unsafe": false,
+    "lang_version": "7.3",
+    "define_symbols": ["FOO_BAR"]
 }
 ```
 

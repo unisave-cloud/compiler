@@ -50,12 +50,17 @@ namespace UnisaveCompiler
                      $"{request.BackendId} for game {request.GameId}...");
 
             await frameworkRepository.PrepareFramework(request.FrameworkVersion);
+            
             PrepareCompilationDirectory(number);
+            
             await DownloadBackendFiles(number, request.GameId, request.Files);
+            
             var response = await RunTheCscCompiler(number, request);
+            
             if (response.Success)
                 await UploadCompiledFiles(number, request);
-            //RemoveCompilationDirectory(number); // TODO: uncomment this!
+            
+            RemoveCompilationDirectory(number);
 
             sw.Stop();
             double secs = Math.Round(sw.Elapsed.TotalSeconds, 3);
@@ -133,14 +138,22 @@ namespace UnisaveCompiler
 
             // === user-specified flags ===
             
-            // TODO ...
-            
-            // c# version
+            // TODO: .NET version stuff
             // .NET version
-            // checked?
-            // safe?
-            // #define
-            // warn as error
+            
+            yield return "-checked" + (request.Checked ? '+' : '-');
+            yield return "-unsafe" + (request.Unsafe ? '+' : '-');
+            yield return "-langversion:" + request.LangVersion;
+            
+            // Possible extensions in the future:
+            // - warn as error
+            // - disable specific warns as error
+            // - other compiler flags
+            
+            // === #define preprocessor symbols ===
+
+            foreach (string symbol in request.DefineSymbols)
+                yield return "-define:" + symbol;
             
             // === references ===
 
