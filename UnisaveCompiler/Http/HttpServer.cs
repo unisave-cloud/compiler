@@ -102,21 +102,28 @@ namespace UnisaveCompiler.Http
                 if (route.SecretToken != null)
                 {
                     var identity = (HttpListenerBasicIdentity) context.User.Identity;
-                    
+
                     if (!route.Authenticate(identity))
                     {
                         // authentication failed
-                        new HttpResponse { StatusCode = 401 }
+                        new HttpResponse {StatusCode = 401}
                             .Send(context.Response);
-                        
+
                         return;
                     }
                 }
-                
+
                 // invoke
                 HttpResponse response = await route.InvokeAsync(context.Request);
-                
+
                 response.Send(context.Response);
+            }
+            catch (ValidationException e)
+            {
+                var exceptionResponse = new ExceptionResponse(e) {
+                    StatusCode = 422
+                };
+                exceptionResponse.Send(context.Response);
             }
             catch (Exception e)
             {
