@@ -56,6 +56,8 @@ namespace UnisaveCompiler
             await DownloadBackendFiles(number, request.GameId, request.Files);
             
             var response = await RunTheCscCompiler(number, request);
+
+            await UploadCompilerOutput(request, response.Output);
             
             if (response.Success)
                 await UploadCompiledFiles(number, request);
@@ -246,6 +248,28 @@ namespace UnisaveCompiler
             proc.BeginErrorReadLine();
 
             return tcs.Task;
+        }
+
+        private async Task UploadCompilerOutput(
+            CompilationRequest request,
+            string compilerOutput
+        )
+        {
+            Log.Info("Uploading compiler output...");
+            
+            string ga = request.GameId.Substring(0, 2);
+            
+            byte[] buffer = Encoding.UTF8.GetBytes(compilerOutput);
+            var stream = new MemoryStream(buffer);
+            
+            await s3Client.PutObjectAsync(
+                new PutObjectRequest {
+                    InputStream = stream,
+                    BucketName = bucket,
+                    Key = $"games/{ga}/{request.GameId}/backends/" +
+                          $"{request.BackendId}/compiler-output.log"
+                }
+            );
         }
 
         private async Task UploadCompiledFiles(
