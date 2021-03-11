@@ -139,7 +139,7 @@ namespace UnisaveCompiler
             // === user-specified flags ===
             
             // TODO: .NET version stuff
-            // .NET version
+            // (see the README.md section to learn more)
             
             yield return "-checked" + (request.Checked ? '+' : '-');
             yield return "-unsafe" + (request.Unsafe ? '+' : '-');
@@ -147,7 +147,7 @@ namespace UnisaveCompiler
             
             // Possible extensions in the future:
             // - warn as error
-            // - disable specific warns as error
+            // - disable specific warns
             // - other compiler flags
             
             // === #define preprocessor symbols ===
