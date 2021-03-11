@@ -129,10 +129,12 @@ namespace UnisaveCompiler
         // Handling HTTP requests //
         ////////////////////////////
 
+        private int compilationCrashesInRow = 0;
+        
         private Task<HealthCheckResponse> IndexPage(HttpListenerRequest _)
         {
             return Task.FromResult(new HealthCheckResponse {
-                Healthy = true
+                Healthy = compilationCrashesInRow < 5
             });
         }
         
@@ -142,8 +144,22 @@ namespace UnisaveCompiler
         )
         {
             request.Validate();
-            
-            return await compiler.CompileBackend(request);
+
+            try
+            {
+                var response = await compiler.CompileBackend(request);
+                
+                compilationCrashesInRow = 0;
+                
+                return response;
+            }
+            catch
+            {
+                // validation errors don't count as they go around
+                compilationCrashesInRow++;
+                
+                throw;
+            }
         }
     }
 }

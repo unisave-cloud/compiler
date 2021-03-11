@@ -5,6 +5,9 @@ using Mono.Unix.Native;
 
 namespace UnisaveCompiler
 {
+    // TODO: have the Dockerfile perform compilation
+    // TODO: add a user to the dockerfile
+
     public static class Program
     {
         public static void Main(string[] args)
